@@ -88,6 +88,8 @@ A GitHub Actions pipeline automatically runs on each push:
 
 Ensures code quality and reliability before deployment.
 
+![ELT Pipeline Architecture](img/pipeline-img.png)
+
 ---
 
 ## 📊 Monitoring
