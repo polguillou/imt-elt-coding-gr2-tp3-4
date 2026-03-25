@@ -61,18 +61,18 @@ jobs:
       # We set fake values because our tests use mocks (@patch)
       # and never actually connect to PostgreSQL.
       #
-      # - name: Run tests with coverage
-      #   env:
-      #     RDS_HOST: localhost
-      #     RDS_PORT: "5432"
-      #     RDS_DATABASE: test_db
-      #     RDS_USER: test_user
-      #     RDS_PASSWORD: test_pass
-      #     BRONZE_SCHEMA: bronze_test
-      #     SILVER_SCHEMA: silver_test
-      #     GOLD_SCHEMA: gold_test
-      #   run: |
-      #     pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
+      - name: Run tests with coverage
+        env:
+          RDS_HOST: localhost
+          RDS_PORT: "5432"
+          RDS_DATABASE: test_db
+          RDS_USER: test_user
+          RDS_PASSWORD: test_pass
+          BRONZE_SCHEMA: bronze_test
+          SILVER_SCHEMA: silver_test
+          GOLD_SCHEMA: gold_test
+        run: |
+          pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
 
       # --- Step 6 (Bonus): Save the coverage report as an artifact ---
       # - name: Upload coverage report
