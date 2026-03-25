@@ -49,7 +49,18 @@ def sample_users():
     #
     # Hint: follow the same pattern as sample_products above
 
-    pass  # ← Replace with pd.DataFrame({...})
+    #pass  # ← Replace with pd.DataFrame({...})
+    """Fake users DataFrame mimicking Bronze data."""
+    return pd.DataFrame({
+        "user_id": [1, 2],
+        "email": [" Alice@Example.COM ", "bob@test.com"],
+        "first_name": ["Alice", "Bob"],
+        "last_name": ["Martin", "Smith"],
+        "loyalty_tier": ["gold", None],
+        "_hashed_password": ["abc123", "def456"],
+        "_last_ip": ["1.2.3.4", "5.6.7.8"],
+        "_device_fingerprint": ["fp1", "fp2"],
+    })
 
 
 @pytest.fixture
@@ -66,4 +77,15 @@ def sample_orders():
     #
     # Hint: follow the same pattern as sample_products above
 
-    pass  # ← Replace with pd.DataFrame({...})
+    #pass  # ← Replace with pd.DataFrame({...})
+    """Fake orders DataFrame mimicking Bronze data."""
+    return pd.DataFrame({
+        "order_id": [1, 2, 3],
+        "user_id": [1, 2, 1],
+        "order_date": ["2026-02-10", "2026-02-11", "2026-02-12"],
+        "status": ["delivered", "shipped", "invalid_status"],
+        "total_usd": [149.99, 179.99, 50.0],
+        "coupon_code": ["SAVE10", None, None],
+        "_stripe_charge_id": ["ch_1", "ch_2", "ch_3"],
+        "_fraud_score": [0.1, 0.2, 0.9],
+    })

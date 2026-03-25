@@ -86,7 +86,14 @@ class TestTransformProducts:
         #   2. result = transform_products()              (call the real function)
         #   3. Assert that result has only 2 rows (the one with price -10 is gone)
         #   4. Assert that all remaining prices are > 0
-        pass
+        #pass
+        mock_read.return_value = sample_products
+        result = transform_products()
+        assert len(result) == 2
+        assert (result["price_usd"] > 0).all()  
+
+
+
 
     @patch("src.transform._load_to_silver")
     @patch("src.transform._read_bronze")
@@ -94,14 +101,25 @@ class TestTransformProducts:
         # TODO: Test that '|' in tags is replaced with ', '
         # After transform, "running|casual" should become "running, casual"
         # Hint: assert not result["tags"].str.contains("|", regex=False).any()
-        pass
+        #pass
+        mock_read.return_value = sample_products
+        result = transform_products()
+        assert not result["tags"].str.contains("|", regex=False).any()
+        assert "running, casual" in result["tags"].values
+
+
 
     @patch("src.transform._load_to_silver")
     @patch("src.transform._read_bronze")
     def test_converts_booleans(self, mock_read, mock_load, sample_products):
         # TODO: Test that is_active and is_hype_product are converted to bool
         # Hint: result["is_active"].dtype == bool
-        pass
+        #pass
+        mock_read.return_value = sample_products
+        result = transform_products()
+        assert result["is_active"].dtype == bool
+        assert result["is_hype_product"].dtype == bool
+
 
 
 class TestTransformUsers:
@@ -111,22 +129,36 @@ class TestTransformUsers:
     @patch("src.transform._read_bronze")
     def test_removes_pii_columns(self, mock_read, mock_load, sample_users):
         # TODO: Test that internal columns (_hashed_password, _last_ip, _device_fingerprint)
-        # are removed from the result
-        pass
+        mock_read.return_value = sample_users
+        result = transform_users()
+
+        assert "_hashed_password" not in result.columns
+        assert "_last_ip" not in result.columns
+        assert "_device_fingerprint" not in result.columns
+        
 
     @patch("src.transform._load_to_silver")
     @patch("src.transform._read_bronze")
     def test_fills_null_loyalty_tier(self, mock_read, mock_load, sample_users):
         # TODO: Test that NULL loyalty_tier values are replaced with "none"
         # Hint: result["loyalty_tier"].notna().all()
-        pass
+        #pass
+        mock_read.return_value = sample_users
+        result = transform_users()
+        assert result["loyalty_tier"].notna().all()
+        assert "none" in result["loyalty_tier"].values
+
 
     @patch("src.transform._load_to_silver")
     @patch("src.transform._read_bronze")
     def test_normalizes_emails(self, mock_read, mock_load, sample_users):
         # TODO: Test that emails are lowercased and stripped of whitespace
         # " Alice@Example.COM " should become "alice@example.com"
-        pass
+        #pass
+        mock_read.return_value = sample_users
+        result = transform_users()
+        assert "alice@example.com" in result["email"].values
+        assert result["email"].str.contains(" ").sum() == 0
 
 
 class TestTransformOrders:
@@ -137,21 +169,31 @@ class TestTransformOrders:
     def test_removes_invalid_statuses(self, mock_read, mock_load, sample_orders):
         # TODO: Test that rows with invalid statuses are removed
         # "invalid_status" is not in the valid set → should be filtered out
-        pass
+        #pass
+        mock_read.return_value = sample_orders
+        result = transform_orders()
+        assert "invalid_status" not in result["status"].values
+        assert len(result) == 2
 
     @patch("src.transform._load_to_silver")
     @patch("src.transform._read_bronze")
     def test_converts_order_date(self, mock_read, mock_load, sample_orders):
         # TODO: Test that order_date is converted to datetime type
         # Hint: "datetime" in str(result["order_date"].dtype)
-        pass
+        mock_read.return_value = sample_orders
+        result = transform_orders()
+        assert "datetime" in str(result["order_date"].dtype)
 
     @patch("src.transform._load_to_silver")
     @patch("src.transform._read_bronze")
     def test_replaces_null_coupon_code(self, mock_read, mock_load, sample_orders):
         # TODO: Test that NULL coupon_code values are replaced with ""
         # Hint: result["coupon_code"].notna().all()
-        pass
+        #pass
+        mock_read.return_value = sample_orders
+        result = transform_orders()
+        assert result["coupon_code"].notna().all()
+        assert "" in result["coupon_code"].values
 
 
 # =============================================================================
@@ -174,16 +216,20 @@ class TestTransformErrorHandling:
         # Hint: use pytest.raises(Exception, match="DB connection failed")
         #   with pytest.raises(Exception, match="DB connection failed"):
         #       transform_products()
-        pass
+        #pass
+        with pytest.raises(Exception, match="DB connection failed"):
+            transform_products()
 
     @patch("src.transform._load_to_silver")
     @patch("src.transform._read_bronze", side_effect=Exception("DB connection failed"))
     def test_transform_users_propagates_error(self, mock_read, mock_load):
         # TODO: Same pattern for transform_users()
-        pass
+        with pytest.raises(Exception, match="DB connection failed"):
+            transform_users()
 
     @patch("src.transform._load_to_silver")
     @patch("src.transform._read_bronze", side_effect=Exception("DB connection failed"))
     def test_transform_orders_propagates_error(self, mock_read, mock_load):
         # TODO: Same pattern for transform_orders()
-        pass
+        with pytest.raises(Exception, match="DB connection failed"):
+            transform_orders()
