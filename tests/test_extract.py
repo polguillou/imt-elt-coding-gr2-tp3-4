@@ -77,34 +77,6 @@ class TestExtractOrderLineItems:
         assert len(result) == len(sample_order_line_items)
         mock_load.assert_called_once_with(sample_order_line_items, "order_line_items")
 
-"""
-class TestExtractReviews:
-    #Tests for extract_reviews().
-
-    @patch("src.extract._load_to_bronze")
-    @patch("src.extract._read_jsonl_from_s3")
-    def test_extracts_and_loads(self, mock_read_jsonl, mock_load, sample_reviews):
-        mock_read_jsonl.return_value = sample_reviews
-
-        result = extract_reviews()
-
-        assert len(result) == len(sample_reviews)
-        mock_load.assert_called_once_with(sample_reviews, "reviews")
-
-
-class TestExtractClickstream:
-    #Tests for extract_clickstream().
-
-    @patch("src.extract._load_to_bronze")
-    @patch("src.extract._read_partitioned_parquet_from_s3")
-    def test_extracts_and_loads(self, mock_read_parquet, mock_load, sample_clickstream):
-        mock_read_parquet.return_value = sample_clickstream
-
-        result = extract_clickstream()
-
-        assert len(result) == len(sample_clickstream)
-        mock_load.assert_called_once_with(sample_clickstream, "clickstream")
-"""
 
 class TestExtractErrorHandling:
     """Tests for error propagation in extract functions."""
