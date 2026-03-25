@@ -1,74 +1,114 @@
-# KICKZ EMPIRE — ELT Pipeline
+# 🏪 KICKZ EMPIRE — ELT Pipeline
 
-ELT (Extract, Load, Transform) pipeline for the **KICKZ EMPIRE** e-commerce website, built as part of the IMT Data Engineering course.
+ELT (Extract, Load, Transform) pipeline for the **KICKZ EMPIRE** e-commerce platform, built as part of the IMT Atlantique Data Engineering course.
+
+---
+
+## 📖 Project Description
+
+KICKZ EMPIRE is a fast-growing e-commerce platform selling sneakers and streetwear.  
+Raw data (orders, users, products, reviews, clickstream) is stored in an S3 data lake but cannot be easily queried.
+
+This project implements a full **ELT pipeline** to:
+- Extract raw data from S3
+- Load it into PostgreSQL
+- Transform and clean it
+- Produce business-ready analytics tables
+
+It enables teams to answer key questions such as:
+- Daily revenue 📊
+- Top products 🏆
+- Customer lifetime value 💰
+
+---
 
 ## 🏗️ Architecture
 
-```
-S3 (CSV)  ──→  🥉 Bronze (raw)  ──→  🥈 Silver (clean)  ──→  🥇 Gold (analytics)
-```
+| Layer | Description |
+|------|-------------|
+| **Bronze** | Raw data copied as-is from S3 |
+| **Silver** | Cleaned data (no PII, validated types) |
+| **Gold** | Aggregated tables for business insights |
 
-| Layer | Schema | Description |
-|---|---|---|
-| **Bronze** | `bronze_groupN` | Raw data — faithful copy of CSV files from S3 |
-| **Silver** | `silver_groupN` | Cleaned data — internal columns removed, PII masked |
-| **Gold** | `gold_groupN` | Aggregated data — ready for dashboards |
+---
 
-## 📁 Project Structure
-
-```
-├── docs/
-│   ├── DATA_PRESENTATION.md    # KICKZ EMPIRE data presentation
-│   └── tp1/
-│       └── INSTRUCTIONS.md     # Step-by-step TP1 instructions
-├── src/
-│   ├── __init__.py
-│   ├── database.py             # PostgreSQL connection (AWS RDS)
-│   ├── extract.py              # Extract: S3 (CSV) → Bronze
-│   ├── transform.py            # Transform: Bronze → Silver
-│   └── gold.py                 # Gold: Silver → Gold (aggregations)
-├── pipeline.py                 # ELT orchestrator
-├── tests/                      # Tests (TP2)
-├── .env.example                # Environment variables template
-├── .gitignore
-├── requirements.txt
-└── README.md
-```
-
-## 🚀 Quick Start
+## ⚙️ Setup Instructions
 
 ```bash
-# 1. Setup
-python -m venv venv && source venv/bin/activate
+# 1. Clone repo
+git clone <repo-url>
+cd <repo>
+
+# 2. Create virtual environment
+python -m venv venv
+source venv/bin/activate   # Linux/Mac
+# .\venv\Scripts\activate  # Windows
+
+# 3. Install dependencies
 pip install -r requirements.txt
-cp .env.example .env  # Configure with your credentials (DB + AWS)
 
-# 2. Test the connection
-python -m src.database
-
-# 3. Run the pipeline (reads from S3 automatically)
-python pipeline.py
+# 4. Configure environment
+cp .env.example .env
 ```
 
-## 📊 Datasets
+## 🚀 How to Run
 
-| Dataset | Format | Source (S3) | Bronze Table |
-|---|---|---|---|
-| Product Catalog | CSV | `raw/catalog/products.csv` | `products` |
-| Users | CSV | `raw/users/users.csv` | `users` |
-| Orders | CSV | `raw/orders/orders.csv` | `orders` |
-| Order Line Items | CSV | `raw/order_line_items/order_line_items.csv` | `order_line_items` |
+▶️ Full pipeline
+```python pipeline.py```
 
-## 📚 Documentation
+▶️ Step by step
+```bash
+# Extract → Bronze
+python pipeline.py --step extract
 
-- [Data Presentation](docs/DATA_PRESENTATION.md)
-- [TP1 Instructions](docs/tp1/INSTRUCTIONS.md)
+# Transform → Silver
+python pipeline.py --step transform
 
-## ⚙️ Tech Stack
+# Gold layer (analytics)
+python pipeline.py --step gold
+```
+---
 
-- **Python 3.10+** : Main language
-- **pandas** : Data manipulation
-- **boto3** : AWS S3 access
-- **SQLAlchemy** : ORM / PostgreSQL connection
-- **PostgreSQL** (AWS RDS) : Database
-- **pytest** : Testing (TP2)
+## 🧪 How to Test
+```bash
+# Run tests
+pytest tests/ -v
+
+# With coverage
+pytest tests/ -v --cov=src --cov-report=term-missing
+```
+---
+
+## 🔁 CI/CD
+
+A GitHub Actions pipeline automatically runs on each push:
+- Linting (flake8)
+- Tests (pytest)
+- Coverage report
+
+Ensures code quality and reliability before deployment.
+
+---
+
+## 📊 Monitoring
+
+Each pipeline run generates a pipeline_report.json with:
+- Step status (success/failure)
+- Duration
+- Rows processed
+- Errors (if any)
+
+---
+
+## 🛠️ Tech Stack
+Python 3.10+
+pandas
+boto3 (AWS S3)
+SQLAlchemy (PostgreSQL)
+pytest (testing)
+GitHub Actions (CI/CD)
+
+---
+
+## 👥 Team Members
+Louise DELFOSSE - Pol GUILLOU - Ethân PERSONNAZ
