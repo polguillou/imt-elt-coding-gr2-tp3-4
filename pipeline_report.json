@@ -1,0 +1,48 @@
+{
+  "pipeline_name": "KICKZ EMPIRE ELT",
+  "run_id": "2026-03-25T15:17:41.228819+00:00",
+  "steps": [
+    {
+      "step_name": "extract",
+      "status": "success",
+      "start_time": "2026-03-25T15:17:41.228850+00:00",
+      "end_time": "2026-03-25T15:21:28.547412+00:00",
+      "duration_seconds": 227.32,
+      "rows_processed": 600155,
+      "tables_created": [
+        "products",
+        "users",
+        "orders",
+        "order_line_items",
+        "reviews",
+        "clickstream"
+      ],
+      "errors": []
+    },
+    {
+      "step_name": "transform",
+      "status": "success",
+      "start_time": "2026-03-25T15:21:28.547458+00:00",
+      "end_time": "2026-03-25T15:21:49.877760+00:00",
+      "duration_seconds": 21.33,
+      "rows_processed": 53184,
+      "tables_created": [
+        "dim_products",
+        "dim_users",
+        "fct_orders",
+        "fct_order_lines"
+      ],
+      "errors": []
+    },
+    {
+      "step_name": "gold",
+      "status": "success",
+      "start_time": "2026-03-25T15:22:16.489557+00:00",
+      "end_time": "2026-03-25T15:22:24.493361+00:00",
+      "duration_seconds": 8.0,
+      "rows_processed": 0,
+      "tables_created": [],
+      "errors": []
+    }
+  ]
+}
