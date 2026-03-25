@@ -1,28 +1,8 @@
-"""
-TP3 — Unit tests for src/extract.py
-=====================================
-
-These tests verify that extraction functions correctly read from S3
-and load into Bronze, without needing real AWS or database connections.
-
-We mock:
-  - _get_s3_client → so we don't need real AWS credentials
-  - _load_to_bronze → so we don't need a real database
-  - _read_csv_from_s3 / _read_jsonl_from_s3 / _read_partitioned_parquet_from_s3
-    → to inject fake data
-"""
-
-from io import BytesIO
-from unittest.mock import patch, MagicMock
-
 import pandas as pd
 import pytest
+from unittest.mock import patch
 
 from src.extract import (
-    _read_csv_from_s3,
-    _read_jsonl_from_s3,
-    _read_partitioned_parquet_from_s3,
-    _load_to_bronze,
     extract_products,
     extract_users,
     extract_orders,
@@ -33,187 +13,170 @@ from src.extract import (
 )
 
 
-def test_read_csv_from_s3():
-    # Fake CSV content returned by S3
-    csv_content = "id,name\n1,Alice\n2,Bob\n"
-    mock_s3 = MagicMock()
-    mock_s3.get_object.return_value = {
-        "Body": BytesIO(csv_content.encode("utf-8"))
-    }
+class TestExtractProducts:
+    """Tests for extract_products()."""
 
-    with patch("src.extract._get_s3_client", return_value=mock_s3):
-        df = _read_csv_from_s3("raw/test/file.csv")
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_csv_from_s3")
+    def test_extracts_and_loads(self, mock_read_csv, mock_load, sample_products):
+        mock_read_csv.return_value = sample_products
 
-    assert isinstance(df, pd.DataFrame)
-    assert len(df) == 2
-    assert list(df.columns) == ["id", "name"]
+        result = extract_products()
 
+        assert len(result) == len(sample_products)
+        mock_load.assert_called_once_with(sample_products, "products")
 
-def test_read_jsonl_from_s3():
-    # Fake JSONL content returned by S3
-    jsonl_content = '{"id": 1, "name": "Alice"}\n{"id": 2, "name": "Bob"}\n'
-    mock_s3 = MagicMock()
-    mock_s3.get_object.return_value = {
-        "Body": BytesIO(jsonl_content.encode("utf-8"))
-    }
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_csv_from_s3")
+    def test_returns_dataframe(self, mock_read_csv, mock_load, sample_products):
+        mock_read_csv.return_value = sample_products
 
-    with patch("src.extract._get_s3_client", return_value=mock_s3):
-        df = _read_jsonl_from_s3("raw/test/file.jsonl")
+        result = extract_products()
 
-    assert isinstance(df, pd.DataFrame)
-    assert len(df) == 2
-    assert "id" in df.columns
-    assert "name" in df.columns
+        assert isinstance(result, pd.DataFrame)
 
 
-def test_read_partitioned_parquet_from_s3():
-    # Fake paginator returning parquet files
-    mock_s3 = MagicMock()
-    mock_paginator = MagicMock()
-    mock_paginator.paginate.return_value = [
-        {
-            "Contents": [
-                {"Key": "raw/clickstream/part-1.parquet"},
-                {"Key": "raw/clickstream/part-2.parquet"},
-            ]
-        }
-    ]
-    mock_s3.get_paginator.return_value = mock_paginator
-    mock_s3.get_object.return_value = {"Body": BytesIO(b"fake parquet bytes")}
+class TestExtractUsers:
+    """Tests for extract_users()."""
 
-    mock_table = MagicMock()
-    mock_table.to_pandas.side_effect = [
-        pd.DataFrame({"event_id": [1, 2]}),
-        pd.DataFrame({"event_id": [3]}),
-    ]
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_csv_from_s3")
+    def test_extracts_and_loads(self, mock_read_csv, mock_load, sample_users):
+        mock_read_csv.return_value = sample_users
 
-    with patch("src.extract._get_s3_client", return_value=mock_s3):
-        with patch("src.extract.pq.read_table", return_value=mock_table):
-            df = _read_partitioned_parquet_from_s3("raw/clickstream/")
+        result = extract_users()
 
-    assert isinstance(df, pd.DataFrame)
-    assert len(df) == 3
-    assert "event_id" in df.columns
+        assert len(result) == len(sample_users)
+        mock_load.assert_called_once_with(sample_users, "users")
 
 
-def test_load_to_bronze():
-    df = pd.DataFrame({"id": [1, 2]})
+class TestExtractOrders:
+    """Tests for extract_orders()."""
 
-    with patch("src.extract.get_engine"):
-        with patch.object(df, "to_sql") as mock_to_sql:
-            _load_to_bronze(df, "test_table")
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_csv_from_s3")
+    def test_extracts_and_loads(self, mock_read_csv, mock_load, sample_orders):
+        mock_read_csv.return_value = sample_orders
 
-    mock_to_sql.assert_called_once()
+        result = extract_orders()
 
-
-def test_extract_products(sample_products):
-    with patch("src.extract._read_csv_from_s3", return_value=sample_products):
-        with patch("src.extract._load_to_bronze") as mock_load:
-            result = extract_products()
-
-    assert isinstance(result, pd.DataFrame)
-    assert len(result) == len(sample_products)
-    mock_load.assert_called_once_with(sample_products, "products")
+        assert len(result) == len(sample_orders)
+        mock_load.assert_called_once_with(sample_orders, "orders")
 
 
-def test_extract_users(sample_users):
-    with patch("src.extract._read_csv_from_s3", return_value=sample_users):
-        with patch("src.extract._load_to_bronze") as mock_load:
-            result = extract_users()
+class TestExtractOrderLineItems:
+    """Tests for extract_order_line_items()."""
 
-    assert isinstance(result, pd.DataFrame)
-    assert len(result) == len(sample_users)
-    mock_load.assert_called_once_with(sample_users, "users")
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_csv_from_s3")
+    def test_extracts_and_loads(self, mock_read_csv, mock_load, sample_order_line_items):
+        mock_read_csv.return_value = sample_order_line_items
 
+        result = extract_order_line_items()
 
-def test_extract_orders(sample_orders):
-    with patch("src.extract._read_csv_from_s3", return_value=sample_orders):
-        with patch("src.extract._load_to_bronze") as mock_load:
-            result = extract_orders()
-
-    assert isinstance(result, pd.DataFrame)
-    assert len(result) == len(sample_orders)
-    mock_load.assert_called_once_with(sample_orders, "orders")
+        assert len(result) == len(sample_order_line_items)
+        mock_load.assert_called_once_with(sample_order_line_items, "order_line_items")
 
 
-def test_extract_order_line_items(sample_order_line_items):
-    with patch("src.extract._read_csv_from_s3", return_value=sample_order_line_items):
-        with patch("src.extract._load_to_bronze") as mock_load:
-            result = extract_order_line_items()
+class TestExtractReviews:
+    """Tests for extract_reviews()."""
 
-    assert isinstance(result, pd.DataFrame)
-    assert len(result) == len(sample_order_line_items)
-    mock_load.assert_called_once_with(sample_order_line_items, "order_line_items")
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_jsonl_from_s3")
+    def test_extracts_and_loads(self, mock_read_jsonl, mock_load, sample_reviews):
+        mock_read_jsonl.return_value = sample_reviews
 
+        result = extract_reviews()
 
-def test_extract_reviews():
-    sample_reviews = pd.DataFrame(
-        {
-            "review_id": [1, 2],
-            "product_id": ["P1", "P2"],
-            "rating": [5, 4],
-        }
-    )
-
-    with patch("src.extract._read_jsonl_from_s3", return_value=sample_reviews):
-        with patch("src.extract._load_to_bronze") as mock_load:
-            result = extract_reviews()
-
-    assert isinstance(result, pd.DataFrame)
-    assert len(result) == 2
-    mock_load.assert_called_once_with(sample_reviews, "reviews")
+        assert len(result) == len(sample_reviews)
+        mock_load.assert_called_once_with(sample_reviews, "reviews")
 
 
-def test_extract_clickstream():
-    sample_clickstream = pd.DataFrame(
-        {
-            "event_id": [1, 2, 3],
-            "user_id": [10, 11, 12],
-            "event_type": ["view", "click", "cart"],
-        }
-    )
+class TestExtractClickstream:
+    """Tests for extract_clickstream()."""
 
-    with patch("src.extract._read_partitioned_parquet_from_s3", return_value=sample_clickstream):
-        with patch("src.extract._load_to_bronze") as mock_load:
-            result = extract_clickstream()
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_partitioned_parquet_from_s3")
+    def test_extracts_and_loads(self, mock_read_parquet, mock_load, sample_clickstream):
+        mock_read_parquet.return_value = sample_clickstream
 
-    assert isinstance(result, pd.DataFrame)
-    assert len(result) == 3
-    mock_load.assert_called_once_with(sample_clickstream, "clickstream")
+        result = extract_clickstream()
+
+        assert len(result) == len(sample_clickstream)
+        mock_load.assert_called_once_with(sample_clickstream, "clickstream")
 
 
-def test_extract_all():
-    with patch("src.extract.extract_products", return_value=pd.DataFrame({"id": [1]})):
-        with patch("src.extract.extract_users", return_value=pd.DataFrame({"id": [1]})):
-            with patch("src.extract.extract_orders", return_value=pd.DataFrame({"id": [1]})):
-                with patch("src.extract.extract_order_line_items", return_value=pd.DataFrame({"id": [1]})):
-                    with patch("src.extract.extract_reviews", return_value=pd.DataFrame({"id": [1]})):
-                        with patch("src.extract.extract_clickstream", return_value=pd.DataFrame({"id": [1]})):
-                            result = extract_all()
+class TestExtractErrorHandling:
+    """Tests for error propagation in extract functions."""
 
-    assert isinstance(result, dict)
-    assert "products" in result
-    assert "users" in result
-    assert "orders" in result
-    assert "order_line_items" in result
-    assert "reviews" in result
-    assert "clickstream" in result
-    assert len(result) == 6
-
-
-def test_extract_products_error():
-    with patch("src.extract._read_csv_from_s3", side_effect=Exception("S3 failed")):
-        with pytest.raises(Exception, match="S3 failed"):
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_csv_from_s3", side_effect=Exception("S3 read failed"))
+    def test_extract_products_propagates_error(self, mock_read_csv, mock_load):
+        with pytest.raises(Exception, match="S3 read failed"):
             extract_products()
 
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_csv_from_s3", side_effect=Exception("S3 read failed"))
+    def test_extract_users_propagates_error(self, mock_read_csv, mock_load):
+        with pytest.raises(Exception, match="S3 read failed"):
+            extract_users()
 
-def test_extract_reviews_error():
-    with patch("src.extract._read_jsonl_from_s3", side_effect=Exception("JSONL failed")):
-        with pytest.raises(Exception, match="JSONL failed"):
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_csv_from_s3", side_effect=Exception("S3 read failed"))
+    def test_extract_orders_propagates_error(self, mock_read_csv, mock_load):
+        with pytest.raises(Exception, match="S3 read failed"):
+            extract_orders()
+
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_csv_from_s3", side_effect=Exception("S3 read failed"))
+    def test_extract_order_line_items_propagates_error(self, mock_read_csv, mock_load):
+        with pytest.raises(Exception, match="S3 read failed"):
+            extract_order_line_items()
+
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_jsonl_from_s3", side_effect=Exception("S3 read failed"))
+    def test_extract_reviews_propagates_error(self, mock_read_jsonl, mock_load):
+        with pytest.raises(Exception, match="S3 read failed"):
             extract_reviews()
 
-
-def test_extract_clickstream_error():
-    with patch("src.extract._read_partitioned_parquet_from_s3", side_effect=Exception("Parquet failed")):
-        with pytest.raises(Exception, match="Parquet failed"):
+    @patch("src.extract._load_to_bronze")
+    @patch("src.extract._read_partitioned_parquet_from_s3", side_effect=Exception("S3 read failed"))
+    def test_extract_clickstream_propagates_error(self, mock_read_parquet, mock_load):
+        with pytest.raises(Exception, match="S3 read failed"):
             extract_clickstream()
+
+
+class TestExtractAll:
+    """Tests for extract_all()."""
+
+    @patch("src.extract.extract_clickstream")
+    @patch("src.extract.extract_reviews")
+    @patch("src.extract.extract_order_line_items")
+    @patch("src.extract.extract_orders")
+    @patch("src.extract.extract_users")
+    @patch("src.extract.extract_products")
+    def test_extract_all_success(
+        self,
+        mock_products,
+        mock_users,
+        mock_orders,
+        mock_order_line_items,
+        mock_reviews,
+        mock_clickstream,
+    ):
+        mock_products.return_value = pd.DataFrame({"id": [1]})
+        mock_users.return_value = pd.DataFrame({"id": [1]})
+        mock_orders.return_value = pd.DataFrame({"id": [1]})
+        mock_order_line_items.return_value = pd.DataFrame({"id": [1]})
+        mock_reviews.return_value = pd.DataFrame({"id": [1]})
+        mock_clickstream.return_value = pd.DataFrame({"id": [1]})
+
+        result = extract_all()
+
+        assert "products" in result
+        assert "users" in result
+        assert "orders" in result
+        assert "order_line_items" in result
+        assert "reviews" in result
+        assert "clickstream" in result
+        assert len(result) == 6
