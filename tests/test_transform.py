@@ -44,6 +44,8 @@ from src.transform import (
     transform_products,
     transform_users,
     transform_orders,
+    transform_order_line_items,
+    transform_all,
 )
 
 
@@ -233,3 +235,64 @@ class TestTransformErrorHandling:
         # TODO: Same pattern for transform_orders()
         with pytest.raises(Exception, match="DB connection failed"):
             transform_orders()
+
+#classe supllémentaire pour faire + de coverage sur transform_order_line_items
+class TestTransformOrderLineItems:
+
+
+    @patch("src.transform._load_to_silver")
+    @patch("src.transform._read_bronze")
+    def test_removes_internal_columns(self, mock_read, mock_load, sample_order_line_items):
+        mock_read.return_value = sample_order_line_items
+        result = transform_order_line_items()
+
+        assert "_warehouse_id" not in result.columns
+
+    @patch("src.transform._load_to_silver")
+    @patch("src.transform._read_bronze")
+    def test_removes_invalid_quantities(self, mock_read, mock_load, sample_order_line_items):
+        mock_read.return_value = sample_order_line_items
+        result = transform_order_line_items()
+        assert (result["quantity"] > 0).all()
+        assert len(result) == 2
+
+    @patch("src.transform._load_to_silver")
+    @patch("src.transform._read_bronze")
+    def test_drops_check_column(self, mock_read, mock_load, sample_order_line_items):
+        mock_read.return_value = sample_order_line_items
+        result = transform_order_line_items()
+        assert "_check" not in result.columns
+
+    @patch("src.transform._load_to_silver")
+    @patch("src.transform._read_bronze", side_effect=Exception("DB connection failed"))
+    def test_transform_order_line_items_propagates_error(self, mock_read, mock_load):
+        with pytest.raises(Exception, match="DB connection failed"):
+            transform_order_line_items()
+
+#on teste transforme all poour monter au dessus de 78% ( oui le test est un peu nul)
+
+class TestTransformAll:
+
+    @patch("src.transform.transform_order_line_items")
+    @patch("src.transform.transform_orders")
+    @patch("src.transform.transform_users")
+    @patch("src.transform.transform_products")
+    def test_transform_all_success(
+        self,
+        mock_products,
+        mock_users,
+        mock_orders,
+        mock_order_lines,
+    ):
+        mock_products.return_value = pd.DataFrame({"id": [1]})
+        mock_users.return_value = pd.DataFrame({"id": [1]})
+        mock_orders.return_value = pd.DataFrame({"id": [1]})
+        mock_order_lines.return_value = pd.DataFrame({"id": [1]})
+
+        result = transform_all()
+
+        assert "dim_products" in result
+        assert "dim_users" in result
+        assert "fct_orders" in result
+        assert "fct_order_lines" in result
+        assert len(result) == 4

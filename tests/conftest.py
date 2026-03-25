@@ -89,3 +89,15 @@ def sample_orders():
         "_stripe_charge_id": ["ch_1", "ch_2", "ch_3"],
         "_fraud_score": [0.1, 0.2, 0.9],
     })
+
+## rajout pour poouvoir faire + de coverage sur transform.py ( avec sample_order_line_items)
+@pytest.fixture
+def sample_order_line_items():
+    return pd.DataFrame({
+        "order_id": [1, 1, 2],
+        "product_id": [101, 102, 103],
+        "quantity": [2, 0, 1],
+        "unit_price_usd": [50.0, 30.0, 20.0],
+        "line_total_usd": [100.0, 0.0, 25.0],
+        "_warehouse_id": ["W1", "W1", "W2"],
+    })
