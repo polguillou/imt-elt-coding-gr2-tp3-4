@@ -34,7 +34,7 @@ class TestCreateDailyRevenue:
         # Fake SQL result returned by pd.read_sql()
         sample_df = pd.DataFrame(
             {
-                "order_date": ["2025-01-01"],
+                "order_date": ["2026-01-01"],
                 "total_orders": [2],
                 "total_revenue": [150.0],
                 "avg_order_value": [75.0],
@@ -94,16 +94,16 @@ class TestCreateCustomerLTV:
         sample_df = pd.DataFrame(
             {
                 "user_id": [1],
-                "email": ["alice@example.com"],
-                "first_name": ["Alice"],
-                "last_name": ["Smith"],
+                "email": ["pol-ethan-louise@example.com"],
+                "first_name": ["pel"],
+                "last_name": ["oto"],
                 "loyalty_tier": ["gold"],
                 "total_orders": [3],
                 "total_spent": [250.0],
                 "avg_order_value": [83.33],
-                "first_order_date": ["2025-01-01"],
-                "last_order_date": ["2025-01-10"],
-                "days_as_customer": [9],
+                "first_order_date": ["2026-01-01"],
+                "last_order_date": ["2026-01-31"],
+                "days_as_customer": [31],
             }
         )
         mock_read_sql.return_value = sample_df
