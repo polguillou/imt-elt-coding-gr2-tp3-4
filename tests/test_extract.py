@@ -79,7 +79,7 @@ class TestExtractOrderLineItems:
 
 """
 class TestExtractReviews:
-    """Tests for extract_reviews()."""
+    #Tests for extract_reviews().
 
     @patch("src.extract._load_to_bronze")
     @patch("src.extract._read_jsonl_from_s3")
@@ -93,7 +93,7 @@ class TestExtractReviews:
 
 
 class TestExtractClickstream:
-    """Tests for extract_clickstream()."""
+    #Tests for extract_clickstream().
 
     @patch("src.extract._load_to_bronze")
     @patch("src.extract._read_partitioned_parquet_from_s3")
