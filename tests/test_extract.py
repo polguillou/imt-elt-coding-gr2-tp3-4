@@ -38,7 +38,7 @@ class TestExtractProducts:
         result = extract_products()
         assert len(result) == 3
         mock_load.assert_called_once()
-        pass
+        #pass
 
     @patch("src.extract._load_to_bronze")
     @patch("src.extract._read_csv_from_s3")
@@ -48,7 +48,7 @@ class TestExtractProducts:
         mock_read_csv.return_value = sample_products 
         result = extract_products()
         assert isinstance(result, pd.DataFrame)
-        pass
+        #pass
 
 
 class TestExtractUsers:
@@ -62,7 +62,7 @@ class TestExtractUsers:
         result = extract_users()
         assert len(result) == 2
         mock_load.assert_called_once()
-        pass
+        #pass
 
 
 class TestExtractOrders:
@@ -76,4 +76,4 @@ class TestExtractOrders:
         result = extract_orders()
         assert len(result) == 3
         mock_load.assert_called_once()
-        pass
+        #pass
