@@ -108,6 +108,7 @@ def _read_partitioned_parquet_from_s3(s3_prefix: str) -> pd.DataFrame:
         raise
     finally:
         logger.debug("Parquet S3 client reading attempt finished.")  
+
 # ---------------------------------------------------------------------------
 # Load helper
 # ---------------------------------------------------------------------------
@@ -242,9 +243,9 @@ def extract_clickstream() -> pd.DataFrame:
 def extract_all() -> dict[str, pd.DataFrame]:
     """Run the complete extraction of all sources to Bronze."""
     try:
-        print(f"\n{'='*60}")
-        print(f"  🥉 EXTRACT → Bronze ({BRONZE_SCHEMA})")
-        print(f"{'='*60}\n")
+        logger.info(f"\n{'='*60}")
+        logger.info(f"  🥉 EXTRACT → Bronze ({BRONZE_SCHEMA})")
+        logger.info(f"{'='*60}\n")
 
         results = {}
 
@@ -264,7 +265,7 @@ def extract_all() -> dict[str, pd.DataFrame]:
         logger.info(f"\n  ✅ Extraction complete — {len(results)} tables loaded into {BRONZE_SCHEMA}")
         return results
     except Exception as e:
-        logger.critical(f"Critical error during the ETL process: {e}")
+        logger.error(f"Critical error during the ETL process: {e}")
         raise
 
 

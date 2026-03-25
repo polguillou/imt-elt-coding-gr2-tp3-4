@@ -27,7 +27,7 @@ def _drop_internal_columns(df: pd.DataFrame) -> pd.DataFrame:
     #        3. Print how many were removed, then return
     internal_cols = [col for col in df.columns if col.startswith("_")]
     df = df.drop(columns=internal_cols)
-    print(f"    🧹 {len(internal_cols)} internal columns removed: {internal_cols}")
+    logger.info(f"🧹 {len(internal_cols)} internal columns removed: {internal_cols}")
     return df
 
 
@@ -41,7 +41,7 @@ def _load_to_silver(df: pd.DataFrame, table_name: str, if_exists: str = "replace
         if_exists=if_exists,
         index=False,
     )
-    print(f"    ✅ {SILVER_SCHEMA}.{table_name} — {len(df)} rows loaded")
+    logger.debug(f"✅ {SILVER_SCHEMA}.{table_name} — {len(df)} rows loaded")
 
 
 def transform_products() -> pd.DataFrame:
@@ -55,7 +55,7 @@ def transform_products() -> pd.DataFrame:
     #           logger.error(f"Failed to transform products: {e}")
     #           raise   ← re-raise so the caller knows it failed
     try:
-        logger.info("  📦 Transform: products → dim_products")
+        logger.info("📦 Transform: products → dim_products")
         df = _read_bronze("products")
 
         # TODO: Step 1 — Drop internal columns (use the helper you wrote above)
@@ -74,7 +74,7 @@ def transform_products() -> pd.DataFrame:
         invalid_prices = df[df["price_usd"] <= 0]
         if len(invalid_prices) > 0:
             # TODO (TP3): Replace with logger.warning(...)
-            logger.info(f"    ⚠️  {len(invalid_prices)} products with price <= 0 (removed)")
+            logger.info(f"⚠️  {len(invalid_prices)} products with price <= 0 (removed)")
         df = df[df["price_usd"] > 0]
 
         # TODO: Step 4 — Convert boolean columns (is_active, is_hype_product)
@@ -226,7 +226,7 @@ def transform_all() -> dict[str, pd.DataFrame]:
         logger.error(f"Critical error during the transformation process: {e}", exc_info=True)
         raise
     finally:
-        logger.info("Pipeline execution finished.")
+        logger.debug("Pipeline execution finished.")
 
 
 if __name__ == "__main__":
