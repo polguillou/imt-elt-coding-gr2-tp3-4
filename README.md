@@ -101,12 +101,12 @@ Each pipeline run generates a pipeline_report.json with:
 ---
 
 ## 🛠️ Tech Stack
-Python 3.10+
-pandas
-boto3 (AWS S3)
-SQLAlchemy (PostgreSQL)
-pytest (testing)
-GitHub Actions (CI/CD)
+- ython 3.10+
+- pandas
+- boto3 (AWS S3)
+- SQLAlchemy (PostgreSQL)
+- pytest (testing)
+- GitHub Actions (CI/CD)
 
 ---
 
