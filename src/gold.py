@@ -30,7 +30,7 @@ def _create_gold_table(df: pd.DataFrame, table_name: str, if_exists: str = "repl
         index=False,
     )
     # TODO (TP3): Replace with logger.info(...)
-    logger.info(f"    ✅ {GOLD_SCHEMA}.{table_name} — {len(df)} rows")
+    logger.info(f"✅ {GOLD_SCHEMA}.{table_name} — {len(df)} rows")
 
 
 def _create_gold_view(view_name: str, sql: str):
@@ -42,14 +42,14 @@ def _create_gold_view(view_name: str, sql: str):
         conn.execute(text(f"CREATE VIEW {full_name} AS {sql}"))
         conn.commit()
     # TODO (TP3): Replace with logger.info(...)
-    logger.info(f"    ✅ View {full_name} created")
+    logger.info(f"✅ View {full_name} created")
 
 
 def create_daily_revenue():
     """Create gold.daily_revenue — daily revenue."""
     # TODO (TP3): Replace print with logger.info, add try/except + logger.error + raise
     try:
-        logger.info("  📊 Gold: daily_revenue")
+        logger.info("📊 Gold: daily_revenue")
 
         # TODO: Create daily_revenue using SQL
         # Write a SQL query that joins fct_orders + fct_order_lines,
@@ -82,7 +82,7 @@ def create_product_performance():
     """Create gold.product_performance — metrics per product."""
     # TODO (TP3): Replace print with logger.info, add try/except + logger.error + raise
     try:
-        logger.info("  🏆 Gold: product_performance")
+        logger.info("🏆 Gold: product_performance")
 
         # TODO: Create the product_performance table
         # Join fct_order_lines with dim_products (and filter via fct_orders)
@@ -118,7 +118,7 @@ def create_customer_ltv():
     """Create gold.customer_ltv — Lifetime Value per customer."""
     # TODO (TP3): Replace print with logger.info, add try/except + logger.error + raise
     try:
-        logger.info("  💰 Gold: customer_ltv")
+        logger.info("💰 Gold: customer_ltv")
 
         # TODO: Create the customer_ltv table
         # Join fct_orders with dim_users
@@ -157,7 +157,7 @@ def create_gold_layer():
     """Create all tables/views for the Gold layer."""
     try:
         logger.info(f"\n{'='*60}")
-        logger.info(f"  🥇 GOLD Layer ({GOLD_SCHEMA})")
+        logger.info(f"🥇 GOLD Layer ({GOLD_SCHEMA})")
         logger.info(f"{'='*60}\n")
 
         # TODO: Call each Gold creation function
@@ -166,12 +166,12 @@ def create_gold_layer():
         create_product_performance()
         create_customer_ltv()
 
-        logger.info(f"\n  ✅ Gold layer created in {GOLD_SCHEMA}")
+        logger.info(f"\n ✅ Gold layer created in {GOLD_SCHEMA}")
     except Exception as e:
         logger.error(f"Failed to create Gold table customer_ltv: {e}", exc_info=True)
         raise e
     finally:
-        logger.info("Gold finished.")
+        logger.debug("Gold finished.")
 
 
 if __name__ == "__main__":
